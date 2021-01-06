@@ -131,6 +131,7 @@ header li:first-child a {
   border-radius:5px 0 0 5px;
 }
 
+
 header li:last-child a {
   border-radius:0 5px 5px 0;
 }
@@ -170,7 +171,7 @@ header ul a strong {
 }
 
 section {
-  width:800px;
+  width:750px;
   float:right;
   padding-bottom:50px;
 }
