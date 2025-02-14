@@ -14,15 +14,6 @@ body {
   text-align: center;
 }
 
-.scholar a {
-  display: inline-block; /* Ensures proper spacing */
-  text-decoration: none; /* Optional: Removes underline */
-  padding: 10px 20px; /* Adjust padding as needed */
-  background-color: #0073e6; /* Optional: Adds a button-style background */
-  color: white; /* Optional: Text color */
-  border-radius: 5px; /* Optional: Rounded corners */
-}
-
 
 .link:hover span{
     font-weight:bold;
