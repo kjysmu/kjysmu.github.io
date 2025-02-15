@@ -12,6 +12,13 @@ body {
 
 .scholar {
   text-align: center;
+  list-style:none;
+  height:30px;
+  padding:0;
+  background: #f4f4f4;
+  border-radius:5px;
+  border:1px solid #e0e0e0;
+  width:210px;
 }
 
 /* .scholar a {
@@ -199,8 +206,8 @@ header {
   border-radius:5px;
   border:1px solid #e0e0e0;
   width:210px;
-}
- */
+} */
+
 header li {
   width:89px;
   float:left;
