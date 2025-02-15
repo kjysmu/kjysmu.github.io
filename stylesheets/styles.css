@@ -10,8 +10,28 @@ body {
     margin-bottom: 10px; /* Adjust as needed */
 }
 
-.scholar a {
+/* .scholar a {
   text-align: center;
+} */
+
+.scholar {
+  text-align: center;
+  padding: 0;
+  margin: 0 0 20px;
+}
+
+.scholar a {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 5px;
+  background-color: #f4f4f4;
+  transition: all 0.3s ease;
+}
+
+.scholar a:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 
