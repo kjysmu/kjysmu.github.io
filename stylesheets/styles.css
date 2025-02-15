@@ -14,7 +14,7 @@ body {
   text-align: center;
 } */
 
-.scholar {
+/* .scholar {
   text-align: center;
   padding: 0;
   margin: 0 0 20px;
@@ -33,7 +33,33 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+ */
 
+.scholar {
+  text-align: center;
+  padding: 0;
+  margin: 20px auto; /* Centers it horizontally */
+  display: flex; /* Enables centering */
+  justify-content: center; /* Centers the button */
+}
+
+.scholar a {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 5px;
+  background-color: #f4f4f4;
+  transition: all 0.3s ease;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+  border: 1px solid #ddd; /* Adds a subtle border */
+}
+
+.scholar a:hover {
+  background-color: #e0e0e0;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
 
 .link:hover span{
     font-weight:bold;
