@@ -10,6 +10,10 @@ body {
     margin-bottom: 10px; /* Adjust as needed */
 }
 
+.scholar {
+  text-align: center;
+}
+
 /* .scholar a {
   text-align: center;
 } */
@@ -35,11 +39,11 @@ body {
 }
  */
 
-.scholar {
+/* .scholar {
   text-align: center;
-}
+} */
 
-.scholar a {
+/* .scholar a {
   display: inline-block;
   padding: 10px 20px;
   border-radius: 5px;
@@ -55,7 +59,7 @@ body {
   background-color: #e0e0e0;
   transform: translateY(-2px);
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
+} */
 
 .link:hover span{
     font-weight:bold;
@@ -334,6 +338,12 @@ footer {
         overflow: auto;
         padding-bottom: 10px
     }
+
+   .scholar {
+      text-align: center;
+    }
+
+  
 }
 
 @media print, screen and (max-width: 720px) {
