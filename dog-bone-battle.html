@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🦴 Bone Brawl @ PCC — Dog Fight</title>
+<style>
+  :root{
+    --navy:#0b1f3a; --navy2:#12325c; --gold:#f4c542; --paw:#f4a742;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:radial-gradient(circle at 50% 20%, #1b3a63 0%, #0b1f3a 60%, #050d1c 100%);
+    color:#eaf2ff; font-family:'Trebuchet MS','Segoe UI',system-ui,sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100%; padding:12px; overflow-x:hidden;
+  }
+  #wrap{ width:100%; max-width:960px; }
+  h1.brand{
+    text-align:center; margin:0 0 8px; font-size:clamp(18px,4.4vw,30px);
+    letter-spacing:1px; color:var(--gold);
+    text-shadow:0 2px 0 #6b4d05, 0 0 18px rgba(244,197,66,.4);
+  }
+  .sub{ text-align:center; margin:0 0 10px; font-size:12px; color:#9fb6d6; }
+  #stage{
+    position:relative; width:100%; border-radius:16px; overflow:hidden;
+    box-shadow:0 18px 50px rgba(0,0,0,.55), inset 0 0 0 3px rgba(244,197,66,.25);
+    background:#20303f;
+  }
+  canvas{ display:block; width:100%; height:auto; touch-action:none; }
+  /* Overlays */
+  .overlay{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center;
+    background:linear-gradient(180deg, rgba(6,16,32,.86), rgba(6,16,32,.94));
+    backdrop-filter:blur(3px); padding:18px; gap:12px;
+  }
+  .overlay.hidden{ display:none; }
+  .badge{
+    font-size:12px; letter-spacing:2px; text-transform:uppercase; color:#7fa7d8;
+    border:1px solid rgba(127,167,216,.35); padding:4px 12px; border-radius:999px;
+  }
+  .title{ font-size:clamp(26px,6vw,46px); margin:2px 0; color:var(--gold);
+    text-shadow:0 3px 0 #6b4d05, 0 0 22px rgba(244,197,66,.45); }
+  .roster{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; max-width:640px; }
+  .chip{ display:flex; align-items:center; gap:7px; background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:5px 12px 5px 8px; font-size:13px; }
+  .chip.you{ box-shadow:0 0 0 2px var(--gold); }
+  .dot{ width:14px; height:14px; border-radius:50%; box-shadow:0 0 8px currentColor; }
+  .favatar{ width:28px; height:28px; border-radius:50%; object-fit:cover; border:2px solid #fff; vertical-align:middle; background:#22354d; }
+  .how{ max-width:560px; font-size:13px; line-height:1.6; color:#cdddf3; }
+  .keys{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:2px; }
+  kbd{ background:#1a2c48; border:1px solid #33517e; border-bottom-width:3px; border-radius:7px;
+    padding:3px 9px; font-family:inherit; font-size:13px; color:#dfeaff; }
+  button.btn{
+    cursor:pointer; border:none; border-radius:12px; padding:13px 30px; font-size:18px; font-weight:bold;
+    font-family:inherit; color:#3a2a00; letter-spacing:.5px;
+    background:linear-gradient(180deg,#ffdd6b,#f4b820); border-bottom:4px solid #b98705;
+    box-shadow:0 8px 24px rgba(244,184,32,.35); transition:transform .08s;
+  }
+  button.btn:active{ transform:translateY(2px); border-bottom-width:2px; }
+  .podium{ display:flex; flex-direction:column; gap:6px; width:100%; max-width:420px; }
+  .prow{ display:flex; align-items:center; gap:10px; background:rgba(255,255,255,.05);
+    border:1px solid rgba(255,255,255,.1); border-radius:10px; padding:8px 12px; font-size:15px; }
+  .prow .rk{ width:34px; font-size:18px; text-align:center; }
+  .prow .nm{ flex:1; text-align:left; font-weight:bold; }
+  .prow .sc{ font-variant-numeric:tabular-nums; font-weight:bold; color:var(--gold); }
+  .prow.win{ box-shadow:0 0 0 2px var(--gold); background:rgba(244,197,66,.12); }
+  /* Mobile controls */
+  #touch{ position:absolute; inset:0; display:none; pointer-events:none; }
+  #bite{
+    position:absolute; right:14px; bottom:14px; width:78px; height:78px; border-radius:50%;
+    background:radial-gradient(circle at 40% 35%, #ff8a5b, #d83a2f); border:3px solid #fff2;
+    color:#fff; font-weight:bold; font-size:13px; display:flex; align-items:center; justify-content:center;
+    pointer-events:auto; user-select:none; box-shadow:0 8px 20px rgba(0,0,0,.4);
+  }
+  #bite:active{ transform:scale(.92); }
+  .foot{ text-align:center; font-size:11px; color:#5f7799; margin-top:10px; }
+  .mutebtn{ position:absolute; top:10px; right:12px; z-index:5; cursor:pointer;
+    background:rgba(6,16,32,.55); border:1px solid #33517e; color:#cfe0ff; border-radius:8px;
+    padding:5px 9px; font-size:14px; font-family:inherit; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h1 class="brand">🦴 BONE BRAWL @ PCC 🦴</h1>
+  <p class="sub">Police Cantonment Complex, Singapore — 5 dogs, one pile of bones, zero manners.</p>
+
+  <div id="stage">
+    <canvas id="game" width="960" height="600"></canvas>
+    <button class="mutebtn" id="mute" title="Toggle sound">🔊</button>
+
+    <!-- Touch controls -->
+    <div id="touch"><div id="bite">BITE</div></div>
+
+    <!-- Start screen -->
+    <div class="overlay" id="menu">
+      <div class="badge">Investigation Officer is throwing bones</div>
+      <div class="title">BONE BRAWL</div>
+      <div class="roster" id="rosterList"></div>
+      <div class="how">
+        The IOs at the fence hurl <b>🦴 bones</b> into the yard. Sprint in, gulp the most bones,
+        and <b>chomp</b> your rivals to knock them off the scent. You are <b style="color:var(--gold)">Ashley</b> 🐶.
+      </div>
+      <div class="keys">
+        <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> move</span>
+        <span><kbd>Space</kbd> chomp</span>
+      </div>
+      <div class="how" style="font-size:12px;color:#9fb6d6">On phone: drag anywhere to run, tap <b>BITE</b> to chomp.</div>
+      <button class="btn" id="startBtn">▶ START THE BRAWL</button>
+    </div>
+
+    <!-- Game over screen -->
+    <div class="overlay hidden" id="over">
+      <div class="badge" id="overBadge">Time!</div>
+      <div class="title" id="overTitle">Results</div>
+      <div class="podium" id="podium"></div>
+      <button class="btn" id="againBtn">↺ PLAY AGAIN</button>
+    </div>
+  </div>
+
+  <div class="foot">A very good boy production · 60-second rounds · everything drawn on a canvas, no downloads.</div>
+</div>
+
+<script>
+(() => {
+"use strict";
+// ---------- Setup ----------
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+const menuEl = document.getElementById('menu');
+const overEl = document.getElementById('over');
+const podiumEl = document.getElementById('podium');
+const overTitle = document.getElementById('overTitle');
+const overBadge = document.getElementById('overBadge');
+const touchEl = document.getElementById('touch');
+const biteBtn = document.getElementById('bite');
+const muteBtn = document.getElementById('mute');
+
+const ROUND_TIME = 60;      // seconds
+const MAX_BONES = 5;        // bones on field at once
+const ARENA = { x:60, y:90, w:W-120, h:H-150 }; // playfield inside the fence
+
+// ---------- Dog definitions ----------
+const DOG_DEFS = [
+  { name:'Ashley',      color:'#f4b23c', accent:'#b9791a', isPlayer:true,  speed:2.9,  aggr:0.5,  greed:0.95, img:'ashley.png',      fx:0.50, fy:0.52, zoom:1.15 },
+  { name:'New bitch',   color:'#e0574f', accent:'#912f2a', isPlayer:false, speed:2.85, aggr:0.95, greed:0.70, img:'new bitch.png',   fx:0.50, fy:0.46, zoom:1.05 },
+  { name:'Julie',       color:'#5fb0f0', accent:'#2c6796', isPlayer:false, speed:3.15, aggr:0.35, greed:0.80, img:'julie.png',       fx:0.50, fy:0.48, zoom:1.00 },
+  { name:'Cho Mat lon', color:'#7fd06a', accent:'#3f8a34', isPlayer:false, speed:2.75, aggr:0.55, greed:1.0,  img:'cho mat lon.png', fx:0.50, fy:0.44, zoom:1.10 },
+  { name:'di cho',      color:'#c193ec', accent:'#734ca0', isPlayer:false, speed:2.9,  aggr:0.75, greed:0.6,  img:'di cho.png',      fx:0.50, fy:0.48, zoom:1.05 },
+];
+
+// ---- Preload the human face photos + colour helpers ----
+const FACES = {};
+DOG_DEFS.forEach(d=>{
+  const im = new Image();
+  im.src = 'game/' + encodeURIComponent(d.img);
+  FACES[d.name] = im;
+});
+function shade(hex, amt){
+  const n=parseInt(hex.slice(1),16);
+  let r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+  r=Math.max(0,Math.min(255,r+amt)); g=Math.max(0,Math.min(255,g+amt)); b=Math.max(0,Math.min(255,b+amt));
+  return 'rgb('+r+','+g+','+b+')';
+}
+function lighten(h,a){ return shade(h,a); }
+function darken(h,a){ return shade(h,-a); }
+
+// ---------- Audio (WebAudio, no files) ----------
+const Audio = (() => {
+  let actx=null, muted=false;
+  function ensure(){ if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(actx&&actx.state==='suspended') actx.resume(); }
+  function tone(freq, dur, type='sine', vol=0.2, slideTo=null){
+    if(muted||!actx) return;
+    const t=actx.currentTime, o=actx.createOscillator(), g=actx.createGain();
+    o.type=type; o.frequency.setValueAtTime(freq,t);
+    if(slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t+dur);
+    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t+dur);
+  }
+  function noise(dur, vol=0.18){
+    if(muted||!actx) return;
+    const t=actx.currentTime, n=Math.floor(actx.sampleRate*dur);
+    const buf=actx.createBuffer(1,n,actx.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
+    const s=actx.createBufferSource(); s.buffer=buf;
+    const g=actx.createGain(); g.gain.value=vol;
+    s.connect(g); g.connect(actx.destination); s.start();
+  }
+  return {
+    ensure,
+    setMuted(m){ muted=m; },
+    bark(){ ensure(); tone(320,0.09,'square',0.16,150); tone(160,0.12,'sawtooth',0.10,90); },
+    grab(){ ensure(); tone(520,0.07,'triangle',0.18,760); noise(0.05,0.08); },
+    throw_(){ ensure(); tone(900,0.14,'sine',0.09,1500); },
+    whistle(){ ensure(); tone(1200,0.18,'sine',0.07,1800); },
+    hit(){ ensure(); noise(0.12,0.20); tone(120,0.14,'sawtooth',0.14,60); },
+    cheer(){ ensure(); [523,659,784,1046].forEach((f,i)=> setTimeout(()=>tone(f,0.22,'triangle',0.15), i*90)); },
+    boo(){ ensure(); tone(200,0.5,'sawtooth',0.12,80); }
+  };
+})();
+
+// ---------- Input ----------
+const keys = {};
+addEventListener('keydown', e=>{
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  keys[e.key.toLowerCase()] = true;
+  if(e.key===' ') keys['space']=true;
+});
+addEventListener('keyup', e=>{
+  keys[e.key.toLowerCase()] = false;
+  if(e.key===' ') keys['space']=false;
+});
+
+// pointer / touch movement
+let pointer = { active:false, x:0, y:0 };
+function canvasPos(clientX, clientY){
+  const r = canvas.getBoundingClientRect();
+  return { x:(clientX-r.left)*(W/r.width), y:(clientY-r.top)*(H/r.height) };
+}
+function pdown(e){ Audio.ensure(); const t=e.touches?e.touches[0]:e; const p=canvasPos(t.clientX,t.clientY); pointer.active=true; pointer.x=p.x; pointer.y=p.y; }
+function pmove(e){ if(!pointer.active)return; const t=e.touches?e.touches[0]:e; const p=canvasPos(t.clientX,t.clientY); pointer.x=p.x; pointer.y=p.y; }
+function pup(){ pointer.active=false; }
+canvas.addEventListener('mousedown', pdown); canvas.addEventListener('mousemove', pmove);
+addEventListener('mouseup', pup);
+canvas.addEventListener('touchstart', e=>{ pdown(e); }, {passive:true});
+canvas.addEventListener('touchmove', e=>{ pmove(e); e.preventDefault(); }, {passive:false});
+canvas.addEventListener('touchend', pup);
+let biteWanted=false;
+biteBtn.addEventListener('touchstart', e=>{ e.preventDefault(); biteWanted=true; }, {passive:false});
+biteBtn.addEventListener('mousedown', e=>{ e.preventDefault(); biteWanted=true; });
+
+if(('ontouchstart' in window) || navigator.maxTouchPoints>0){ touchEl.style.display='block'; }
+
+// ---------- Game state ----------
+let state = 'menu';   // menu | count | playing | over
+let dogs=[], bones=[], officers=[], fx=[], floats=[], confetti=[];
+let timeLeft=ROUND_TIME, spawnTimer=1.0, countdown=0, elapsed=0;
+
+function rand(a,b){ return a + Math.random()*(b-a); }
+function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+
+function makeOfficers(){
+  officers = [
+    { x:ARENA.x+ARENA.w*0.30, y:ARENA.y-34, arm:0 },
+    { x:ARENA.x+ARENA.w*0.70, y:ARENA.y-34, arm:0 },
+    { x:ARENA.x-34, y:ARENA.y+ARENA.h*0.5, arm:0 },
+    { x:ARENA.x+ARENA.w+34, y:ARENA.y+ARENA.h*0.5, arm:0 },
+    { x:ARENA.x+ARENA.w*0.5, y:ARENA.y+ARENA.h+30, arm:0 },
+  ];
+}
+
+function initRound(){
+  makeOfficers();
+  bones=[]; fx=[]; floats=[]; confetti=[];
+  timeLeft=ROUND_TIME; spawnTimer=0.6; elapsed=0;
+  dogs = DOG_DEFS.map((d,i)=>{
+    const ang = (i/DOG_DEFS.length)*Math.PI*2;
+    return {
+      ...d, x:W/2+Math.cos(ang)*130, y:H/2+Math.sin(ang)*110,
+      vx:0, vy:0, score:0, radius:20, facing:Math.random()*Math.PI*2,
+      stun:0, biteCd:0, legPhase:Math.random()*6, tail:0, biteFlash:0
+    };
+  });
+  // seed a couple of bones
+  for(let i=0;i<3;i++) spawnBone(true);
+}
+
+function spawnBone(instant=false){
+  if(bones.length>=MAX_BONES) return;
+  const o = officers[Math.floor(Math.random()*officers.length)];
+  o.arm = 1;
+  const tx = ARENA.x + rand(0.12,0.88)*ARENA.w;
+  const ty = ARENA.y + rand(0.12,0.88)*ARENA.h;
+  if(instant){
+    bones.push({ x:tx, y:ty, tx, ty, z:0, vz:0, flying:false, rot:rand(0,6.28), spin:rand(-0.2,0.2), wob:0 });
+    return;
+  }
+  const dx=tx-o.x, dy=ty-o.y, d=Math.hypot(dx,dy)||1;
+  const t = 0.9; // flight time factor
+  bones.push({
+    x:o.x, y:o.y, tx, ty, z:0, vz:9,
+    vx:dx/d*(d/ (t*60)), vy:dy/d*(d/(t*60)),
+    flying:true, rot:rand(0,6.28), spin:rand(-0.4,0.4), wob:0
+  });
+  Audio.throw_();
+}
+
+// ---------- Update ----------
+function update(dt){
+  if(state==='count'){
+    countdown -= dt/1000;
+    if(countdown<=0){ state='playing'; Audio.whistle(); }
+    return;
+  }
+  if(state!=='playing') return;
+
+  elapsed += dt/1000;
+  timeLeft -= dt/1000;
+  if(timeLeft<=0){ timeLeft=0; endRound(); return; }
+
+  const f = dt/16.667; // frame factor (1 at 60fps)
+
+  // officers arm recovery
+  officers.forEach(o=> o.arm = Math.max(0, o.arm - 0.05*f));
+
+  // spawn bones over time
+  spawnTimer -= dt/1000;
+  if(spawnTimer<=0 && bones.length<MAX_BONES){
+    spawnBone(false);
+    spawnTimer = rand(1.0, 2.1);
+  }
+
+  // bones physics
+  for(const b of bones){
+    if(b.flying){
+      b.x += b.vx*f; b.y += b.vy*f;
+      b.vz -= 0.55*f; b.z += b.vz*f; b.rot += b.spin*f;
+      if(b.z<=0 && b.vz<0){ b.z=0; b.flying=false; b.spin*=0.3; }
+    } else {
+      b.wob += 0.1*f; b.rot += Math.sin(b.wob)*0.004;
+    }
+  }
+
+  // dogs AI + physics
+  for(const d of dogs){
+    if(d.stun>0){ d.stun-=dt/1000; d.vx*=0.86; d.vy*=0.86; }
+    else if(d.isPlayer){ playerControl(d, f); }
+    else { aiControl(d, f); }
+
+    d.biteCd = Math.max(0, d.biteCd - dt/1000);
+    d.biteFlash = Math.max(0, d.biteFlash - dt/1000);
+
+    // integrate
+    d.x += d.vx*f; d.y += d.vy*f;
+    d.vx*=0.82; d.vy*=0.82;
+
+    // clamp to arena
+    d.x = Math.max(ARENA.x+d.radius, Math.min(ARENA.x+ARENA.w-d.radius, d.x));
+    d.y = Math.max(ARENA.y+d.radius, Math.min(ARENA.y+ARENA.h-d.radius, d.y));
+
+    // facing + anim
+    const sp = Math.hypot(d.vx,d.vy);
+    if(sp>0.4){ d.facing = Math.atan2(d.vy,d.vx); d.legPhase += sp*0.12*f; }
+    d.tail += (0.25 + sp*0.1)*f;
+
+    // grab bones (only landed ones)
+    for(let i=bones.length-1;i>=0;i--){
+      const b=bones[i];
+      if(!b.flying && Math.hypot(d.x-b.x, d.y-b.y) < d.radius+9){
+        bones.splice(i,1);
+        d.score++;
+        floats.push({ x:b.x, y:b.y-14, t:0, txt:'+1', col:d.color });
+        fx.push({ type:'ring', x:b.x, y:b.y, r:6, max:34, t:0, col:d.color });
+        if(d.isPlayer) Audio.grab(); else if(dist(d,dogs[0])<220) Audio.grab();
+      }
+    }
+  }
+
+  // dog-dog soft collision (no overlap)
+  for(let i=0;i<dogs.length;i++) for(let j=i+1;j<dogs.length;j++){
+    const a=dogs[i], b=dogs[j], dx=b.x-a.x, dy=b.y-a.y, d=Math.hypot(dx,dy)||1;
+    const min=a.radius+b.radius-6;
+    if(d<min){ const p=(min-d)/2, nx=dx/d, ny=dy/d;
+      a.x-=nx*p; a.y-=ny*p; b.x+=nx*p; b.y+=ny*p; }
+  }
+
+  // fx
+  for(let i=fx.length-1;i>=0;i--){ const e=fx[i]; e.t+=dt/1000; e.r+=(e.max-e.r)*0.2*f;
+    if(e.t>0.5) fx.splice(i,1); }
+  for(let i=floats.length-1;i>=0;i--){ const fl=floats[i]; fl.t+=dt/1000; fl.y-=0.5*f;
+    if(fl.t>1.0) floats.splice(i,1); }
+}
+
+function tryBite(d){
+  if(d.biteCd>0 || d.stun>0) return;
+  d.biteCd = 0.55;
+  d.biteFlash = 0.18;
+  const bx = d.x+Math.cos(d.facing)*d.radius, by=d.y+Math.sin(d.facing)*d.radius;
+  fx.push({ type:'chomp', x:bx, y:by, r:8, max:30, t:0, col:'#fff' });
+  Audio.bark();
+  let landed=false;
+  for(const o of dogs){
+    if(o===d) continue;
+    const dx=o.x-d.x, dy=o.y-d.y, dd=Math.hypot(dx,dy);
+    if(dd < d.radius+o.radius+16){
+      const nx=dx/(dd||1), ny=dy/(dd||1);
+      o.vx += nx*9; o.vy += ny*9;
+      o.stun = Math.max(o.stun, 0.9);
+      fx.push({ type:'star', x:o.x, y:o.y-o.radius-6, t:0 });
+      landed=true;
+    }
+  }
+  if(landed) Audio.hit();
+}
+
+function playerControl(d, f){
+  let ax=0, ay=0;
+  if(keys['arrowleft']||keys['a']) ax-=1;
+  if(keys['arrowright']||keys['d']) ax+=1;
+  if(keys['arrowup']||keys['w']) ay-=1;
+  if(keys['arrowdown']||keys['s']) ay+=1;
+  // pointer steering
+  if(pointer.active){
+    const dx=pointer.x-d.x, dy=pointer.y-d.y, m=Math.hypot(dx,dy);
+    if(m>10){ ax+=dx/m; ay+=dy/m; }
+  }
+  const m=Math.hypot(ax,ay);
+  if(m>0){ ax/=m; ay/=m; d.vx+=ax*d.speed*0.5*f; d.vy+=ay*d.speed*0.5*f; }
+  // clamp speed
+  const sp=Math.hypot(d.vx,d.vy), max=d.speed;
+  if(sp>max){ d.vx=d.vx/sp*max; d.vy=d.vy/sp*max; }
+  if(keys['space']||biteWanted){ tryBite(d); biteWanted=false; }
+}
+
+function aiControl(d, f){
+  // find nearest landed (or nearly-landed) bone
+  let target=null, best=1e9;
+  for(const b of bones){
+    if(b.flying && b.z>40) continue;
+    const dd=Math.hypot(d.x-b.x, d.y-b.y);
+    // greed lowers effective distance for greedy dogs
+    const score = dd*(1.2-d.greed*0.4);
+    if(score<best){ best=score; target=b; }
+  }
+  let ax=0, ay=0;
+  if(target){
+    const dx=target.x-d.x, dy=target.y-d.y, m=Math.hypot(dx,dy)||1;
+    ax=dx/m; ay=dy/m;
+    // aggressive dogs: if a rival is close to my target and in front, chomp them
+    if(d.biteCd<=0){
+      for(const o of dogs){
+        if(o===d) continue;
+        if(Math.hypot(o.x-d.x,o.y-d.y) < d.radius+o.radius+14 && Math.random()<d.aggr*0.06){
+          d.facing=Math.atan2(o.y-d.y,o.x-d.x); tryBite(d); break;
+        }
+      }
+    }
+  } else {
+    // wander toward center-ish
+    ax = (W/2-d.x)/400 + Math.cos(elapsed*1.3+d.tail)*0.4;
+    ay = (H/2-d.y)/400 + Math.sin(elapsed*1.1+d.tail)*0.4;
+  }
+  const m=Math.hypot(ax,ay);
+  if(m>0){ ax/=m; ay/=m; d.vx+=ax*d.speed*0.5*f; d.vy+=ay*d.speed*0.5*f; }
+  const sp=Math.hypot(d.vx,d.vy);
+  if(sp>d.speed){ d.vx=d.vx/sp*d.speed; d.vy=d.vy/sp*d.speed; }
+}
+
+// ---------- Render ----------
+function draw(){
+  // background yard
+  ctx.clearRect(0,0,W,H);
+  drawYard();
+  drawFence();
+  drawOfficers();
+
+  // bone shadows first
+  for(const b of bones){ drawBoneShadow(b); }
+  // landed bones sit on the ground (behind the standing dogs)
+  for(const b of bones){ if(!b.flying) drawBone(b); }
+  // sort dogs by y for depth
+  const order=[...dogs].sort((a,b)=>a.y-b.y);
+  for(const d of order){ drawDog(d); }
+  // airborne bones fly above everyone
+  for(const b of bones){ if(b.flying) drawBone(b); }
+
+  drawFx();
+  drawFloats();
+  drawHUD();
+  if(state==='count') drawCountdown();
+  if(state==='over') drawConfetti();
+}
+
+function drawYard(){
+  // concrete
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#6f7a80'); g.addColorStop(1,'#565f66');
+  ctx.fillStyle=g; ctx.fillRect(ARENA.x,ARENA.y,ARENA.w,ARENA.h);
+  // subtle grid lines (paving)
+  ctx.strokeStyle='rgba(0,0,0,0.08)'; ctx.lineWidth=2;
+  for(let x=ARENA.x; x<=ARENA.x+ARENA.w; x+=60){ ctx.beginPath(); ctx.moveTo(x,ARENA.y); ctx.lineTo(x,ARENA.y+ARENA.h); ctx.stroke(); }
+  for(let y=ARENA.y; y<=ARENA.y+ARENA.h; y+=60){ ctx.beginPath(); ctx.moveTo(ARENA.x,y); ctx.lineTo(ARENA.x+ARENA.w,y); ctx.stroke(); }
+  // center emblem
+  ctx.save(); ctx.globalAlpha=0.14; ctx.translate(W/2,ARENA.y+ARENA.h/2);
+  ctx.fillStyle='#0b1f3a'; ctx.font='bold 40px Trebuchet MS'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('★ PCC ★', 0, -10);
+  ctx.font='bold 16px Trebuchet MS'; ctx.fillText('POLICE CANTONMENT COMPLEX', 0, 26);
+  ctx.restore();
+  // yellow boundary paint
+  ctx.strokeStyle='rgba(244,197,66,0.85)'; ctx.lineWidth=5;
+  ctx.strokeRect(ARENA.x+10,ARENA.y+10,ARENA.w-20,ARENA.h-20);
+}
+
+function drawFence(){
+  ctx.strokeStyle='#25384f'; ctx.lineWidth=6;
+  ctx.strokeRect(ARENA.x,ARENA.y,ARENA.w,ARENA.h);
+  // chain-link hint top
+  ctx.strokeStyle='rgba(255,255,255,0.10)'; ctx.lineWidth=1;
+  for(let x=ARENA.x; x<ARENA.x+ARENA.w; x+=14){
+    ctx.beginPath(); ctx.moveTo(x,ARENA.y); ctx.lineTo(x+10,ARENA.y-8); ctx.stroke();
+  }
+}
+
+function drawOfficers(){
+  for(const o of officers){
+    ctx.save(); ctx.translate(o.x,o.y);
+    // body (navy uniform)
+    ctx.fillStyle='#12315a'; ctx.beginPath(); ctx.ellipse(0,6,13,16,0,0,7); ctx.fill();
+    // head
+    ctx.fillStyle='#e9c39b'; ctx.beginPath(); ctx.arc(0,-14,9,0,7); ctx.fill();
+    // cap
+    ctx.fillStyle='#0b1f3a'; ctx.beginPath(); ctx.arc(0,-17,9,Math.PI,0); ctx.fill();
+    ctx.fillRect(-10,-18,20,4);
+    ctx.fillStyle='#f4c542'; ctx.fillRect(-4,-22,8,3); // badge
+    // throwing arm
+    ctx.strokeStyle='#12315a'; ctx.lineWidth=5; ctx.lineCap='round';
+    const arm=o.arm;
+    ctx.beginPath(); ctx.moveTo(8,-2); ctx.lineTo(14+arm*8, -6-arm*12); ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function roundedBone(cx,cy,rot,scale){
+  ctx.save(); ctx.translate(cx,cy); ctx.rotate(rot); ctx.scale(scale,scale);
+  ctx.fillStyle='#f5f0e1'; ctx.strokeStyle='#c9c0a6'; ctx.lineWidth=1.5;
+  const bar=14, kn=6;
+  ctx.beginPath();
+  ctx.arc(-bar,-4,kn,0,7); ctx.arc(-bar,4,kn,0,7);
+  ctx.arc(bar,-4,kn,0,7); ctx.arc(bar,4,kn,0,7);
+  ctx.rect(-bar,-5,bar*2,10);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(-bar,-9); ctx.lineTo(bar,-9); ctx.moveTo(-bar,9); ctx.lineTo(bar,9);
+  ctx.stroke();
+  ctx.restore();
+}
+function drawBoneShadow(b){
+  const s = 1/(1+b.z*0.02);
+  ctx.save(); ctx.globalAlpha=0.25*s; ctx.fillStyle='#000';
+  ctx.beginPath(); ctx.ellipse(b.x, b.y+6, 16*s, 6*s, 0,0,7); ctx.fill(); ctx.restore();
+}
+function drawBone(b){
+  const scale = 0.85 + b.z*0.01;
+  roundedBone(b.x, b.y-b.z, b.rot, Math.min(1.4, scale));
+}
+
+// draw a human face photo, circular-cropped (cover-fit on its focal point)
+function drawFace(d, lx, ly, r){
+  const img = FACES[d.name];
+  ctx.save();
+  ctx.beginPath(); ctx.arc(lx,ly,r,0,7); ctx.clip();
+  if(img && img.complete && img.naturalWidth>0){
+    const iw=img.naturalWidth, ih=img.naturalHeight;
+    const D=r*2*(d.zoom||1), sc=D/Math.min(iw,ih), w=iw*sc, h=ih*sc;
+    ctx.drawImage(img, lx-(d.fx||0.5)*w, ly-(d.fy||0.5)*h, w, h);
+  } else {
+    ctx.fillStyle='#e9c39b'; ctx.fillRect(lx-r,ly-r,2*r,2*r);
+    ctx.fillStyle='#2a2018';
+    ctx.beginPath(); ctx.arc(lx-r*0.35,ly-r*0.05,r*0.13,0,7); ctx.arc(lx+r*0.35,ly-r*0.05,r*0.13,0,7); ctx.fill();
+  }
+  ctx.restore();
+}
+
+// upright, camera-facing "human-faced dog"
+function drawDog(d){
+  const S = 0.82 + (d.y-ARENA.y)/ARENA.h*0.34;         // fake perspective: closer = bigger
+  const bob = Math.sin(d.legPhase)*2.5;
+  const lean = Math.max(-0.26, Math.min(0.26, d.vx*0.05)); // lean into horizontal movement
+  const r = 15;                                         // face radius (local units)
+
+  // ground shadow
+  ctx.save(); ctx.globalAlpha=0.30; ctx.fillStyle='#000';
+  ctx.beginPath(); ctx.ellipse(d.x, d.y+26*S, 22*S, 7*S, 0,0,7); ctx.fill(); ctx.restore();
+
+  ctx.save();
+  ctx.translate(d.x, d.y);
+  ctx.rotate(lean);
+  ctx.scale(S,S);
+  ctx.translate(0, bob*0.3);
+
+  // wagging tail (behind body)
+  ctx.strokeStyle=d.accent; ctx.lineWidth=7; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(11,20);
+  ctx.quadraticCurveTo(22+Math.sin(d.tail)*7, 12, 25+Math.sin(d.tail)*11, 3); ctx.stroke();
+
+  // body with volume shading
+  const bg=ctx.createLinearGradient(0,-4,0,42);
+  bg.addColorStop(0, lighten(d.color,25)); bg.addColorStop(1, d.accent);
+  ctx.fillStyle=bg; ctx.strokeStyle=darken(d.accent,15); ctx.lineWidth=2;
+  ctx.beginPath(); ctx.ellipse(0,20,17,21,0,0,7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.32)';
+  ctx.beginPath(); ctx.ellipse(0,24,9,12,0,0,7); ctx.fill();   // belly
+  ctx.fillStyle=d.accent;                                       // front paws
+  ctx.beginPath(); ctx.ellipse(-8,37,5,4,0,0,7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(8,37,5,4,0,0,7); ctx.fill();
+
+  // floppy dog ears (behind the face)
+  ctx.fillStyle=d.accent; ctx.strokeStyle=darken(d.accent,15); ctx.lineWidth=1.5;
+  ctx.save(); ctx.translate(-13,-16); ctx.rotate(-0.55+Math.sin(d.tail)*0.05);
+  ctx.beginPath(); ctx.ellipse(0,0,5.5,12,0,0,7); ctx.fill(); ctx.stroke(); ctx.restore();
+  ctx.save(); ctx.translate(13,-16); ctx.rotate(0.55-Math.sin(d.tail)*0.05);
+  ctx.beginPath(); ctx.ellipse(0,0,5.5,12,0,0,7); ctx.fill(); ctx.stroke(); ctx.restore();
+
+  // collar + bone tag
+  ctx.strokeStyle=darken(d.color,25); ctx.lineWidth=5; ctx.lineCap='butt';
+  ctx.beginPath(); ctx.arc(0,0,15,0.16*Math.PI,0.84*Math.PI); ctx.stroke();
+  ctx.fillStyle='#f4c542'; ctx.strokeStyle=darken('#f4c542',30); ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(0,14,3.4,0,7); ctx.fill(); ctx.stroke();
+
+  // the human face
+  drawFace(d, 0, -14, r);
+  ctx.lineWidth=3.2; ctx.strokeStyle = d.isPlayer ? '#f4c542' : d.color;
+  ctx.beginPath(); ctx.arc(0,-14,r,0,7); ctx.stroke();
+  if(d.isPlayer){
+    ctx.strokeStyle='rgba(244,197,66,'+(0.5+Math.sin(elapsed*6)*0.25)+')';
+    ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(0,-14,r+4,0,7); ctx.stroke();
+  }
+  if(d.biteFlash>0){
+    ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.globalAlpha=Math.min(1,d.biteFlash*5);
+    ctx.beginPath(); ctx.arc(0,-14,r+7,0,7); ctx.stroke(); ctx.globalAlpha=1;
+  }
+  ctx.restore();
+
+  // ---- screen-space overlays ----
+  const headTop = d.y - (14+r)*S - bob*0.3;
+  if(d.stun>0){
+    for(let i=0;i<3;i++){ const a=elapsed*6 + i*2.1;
+      ctx.fillStyle='#ffd94a'; ctx.font='14px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('✦', d.x+Math.cos(a)*16*S, headTop-4+Math.sin(a)*4);
+    }
+  }
+  const label = (d.isPlayer?'★ ':'') + d.name + '  ' + d.score;
+  ctx.font='bold 12px Trebuchet MS'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  const wlab=ctx.measureText(label).width+16;
+  const ly=headTop-13;
+  ctx.fillStyle = d.isPlayer ? 'rgba(244,197,66,0.96)' : 'rgba(10,20,35,0.75)';
+  roundRectPath(d.x-wlab/2, ly-9, wlab, 18, 9); ctx.fill();
+  ctx.fillStyle = d.isPlayer ? '#3a2a00' : '#eaf2ff';
+  ctx.fillText(label, d.x, ly);
+}
+
+function roundRectPath(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+function drawFx(){
+  for(const e of fx){
+    if(e.type==='ring' || e.type==='chomp'){
+      ctx.strokeStyle = e.col; ctx.globalAlpha = Math.max(0,1-e.t*2); ctx.lineWidth=3;
+      ctx.beginPath(); ctx.arc(e.x,e.y,e.r,0,7); ctx.stroke(); ctx.globalAlpha=1;
+      if(e.type==='chomp' && e.t<0.12){ ctx.fillStyle='#fff'; ctx.font='bold 16px Trebuchet MS';
+        ctx.textAlign='center'; ctx.fillText('CHOMP!', e.x, e.y-e.r-4); }
+    } else if(e.type==='star'){
+      ctx.globalAlpha=Math.max(0,1-e.t*2.2); ctx.fillStyle='#ffd94a'; ctx.font='16px sans-serif';
+      ctx.textAlign='center'; ctx.fillText('💥', e.x, e.y); ctx.globalAlpha=1;
+    }
+  }
+}
+function drawFloats(){
+  for(const fl of floats){
+    ctx.globalAlpha=Math.max(0,1-fl.t); ctx.fillStyle=fl.col; ctx.strokeStyle='#00000055';
+    ctx.lineWidth=3; ctx.font='bold 18px Trebuchet MS'; ctx.textAlign='center';
+    ctx.strokeText(fl.txt, fl.x, fl.y); ctx.fillText(fl.txt, fl.x, fl.y); ctx.globalAlpha=1;
+  }
+}
+
+function drawHUD(){
+  // timer bar
+  ctx.fillStyle='rgba(6,16,32,0.75)'; roundRectPath(W/2-70, 14, 140, 34, 10); ctx.fill();
+  ctx.fillStyle= timeLeft<=10 ? '#ff6b6b' : '#f4c542';
+  ctx.font='bold 24px Trebuchet MS'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('⏱ '+Math.ceil(timeLeft)+'s', W/2, 32);
+
+  // scoreboard (right)
+  const sorted=[...dogs].sort((a,b)=>b.score-a.score);
+  const bx=W-176, by=14; ctx.fillStyle='rgba(6,16,32,0.72)';
+  roundRectPath(bx,by,162, 18+sorted.length*20, 10); ctx.fill();
+  ctx.textAlign='left';
+  ctx.font='bold 12px Trebuchet MS'; ctx.fillStyle='#7fa7d8'; ctx.textBaseline='middle';
+  ctx.fillText('SCOREBOARD', bx+12, by+12);
+  sorted.forEach((d,i)=>{
+    const y=by+30+i*20;
+    ctx.fillStyle=d.color; ctx.beginPath(); ctx.arc(bx+16,y,5,0,7); ctx.fill();
+    ctx.fillStyle=d.isPlayer?'#f4c542':'#dfeaff'; ctx.font=(d.isPlayer?'bold ':'')+'12px Trebuchet MS';
+    ctx.fillText(d.name, bx+26, y);
+    ctx.textAlign='right'; ctx.fillText(String(d.score), bx+152, y); ctx.textAlign='left';
+  });
+}
+
+function drawCountdown(){
+  ctx.fillStyle='rgba(6,16,32,0.55)'; ctx.fillRect(0,0,W,H);
+  const label = countdown>0.6 ? String(Math.ceil(countdown-0.6)) : 'GO!';
+  ctx.fillStyle='#f4c542'; ctx.font='bold 120px Trebuchet MS';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(label, W/2, H/2);
+}
+
+// ---------- Confetti (win) ----------
+function spawnConfetti(){
+  const cols=['#f4c542','#ff6b6b','#5fb0f0','#7fd06a','#c193ec','#fff'];
+  for(let i=0;i<160;i++) confetti.push({
+    x:Math.random()*W, y:-20-Math.random()*H, vy:2+Math.random()*3,
+    vx:(Math.random()-0.5)*2, s:4+Math.random()*6, col:cols[i%cols.length], rot:Math.random()*6, vr:(Math.random()-0.5)*0.3
+  });
+}
+function drawConfetti(){
+  for(const c of confetti){
+    c.x+=c.vx; c.y+=c.vy; c.rot+=c.vr; if(c.y>H+20){ c.y=-20; c.x=Math.random()*W; }
+    ctx.save(); ctx.translate(c.x,c.y); ctx.rotate(c.rot); ctx.fillStyle=c.col;
+    ctx.fillRect(-c.s/2,-c.s/2,c.s,c.s*0.6); ctx.restore();
+  }
+}
+
+// ---------- Round end ----------
+function endRound(){
+  state='over';
+  const sorted=[...dogs].sort((a,b)=>b.score-a.score);
+  const winner=sorted[0];
+  const ashley=dogs.find(d=>d.isPlayer);
+  const ashleyRank=sorted.indexOf(ashley)+1;
+
+  overTitle.textContent = winner.name==='Ashley' ? '🏆 Ashley wins!' : (winner.name+' wins');
+  if(winner.name==='Ashley'){ overBadge.textContent='Top dog!'; spawnConfetti(); Audio.cheer(); }
+  else if(ashleyRank<=2){ overBadge.textContent='So close — rank #'+ashleyRank; Audio.boo(); }
+  else { overBadge.textContent='You placed #'+ashleyRank+' of 5'; Audio.boo(); }
+
+  const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
+  podiumEl.innerHTML='';
+  sorted.forEach((d,i)=>{
+    const row=document.createElement('div');
+    row.className='prow'+(d.isPlayer?' win':'');
+    row.innerHTML='<div class="rk">'+medals[i]+'</div>'+
+      '<img class="favatar" src="game/'+encodeURIComponent(d.img)+'" style="border-color:'+d.color+'" alt="">'+
+      '<div class="nm">'+d.name+(d.isPlayer?' (you)':'')+'</div>'+
+      '<div class="sc">'+d.score+' 🦴</div>';
+    podiumEl.appendChild(row);
+  });
+  overEl.classList.remove('hidden');
+}
+
+// ---------- Loop ----------
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(50, now-last); last=now;
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ---------- Menu wiring ----------
+function buildRoster(){
+  const el=document.getElementById('rosterList'); el.innerHTML='';
+  DOG_DEFS.forEach(d=>{
+    const c=document.createElement('div'); c.className='chip'+(d.isPlayer?' you':'');
+    c.innerHTML='<img class="favatar" src="game/'+encodeURIComponent(d.img)+'" style="border-color:'+d.color+'" alt="">'+
+      '<span>'+d.name+(d.isPlayer?' — YOU 🐶':'')+'</span>';
+    el.appendChild(c);
+  });
+}
+buildRoster();
+
+function startGame(){
+  Audio.ensure();
+  menuEl.classList.add('hidden');
+  overEl.classList.add('hidden');
+  initRound();
+  countdown=3.6; state='count';
+}
+document.getElementById('startBtn').addEventListener('click', startGame);
+document.getElementById('againBtn').addEventListener('click', startGame);
+
+let muted=false;
+muteBtn.addEventListener('click', ()=>{ muted=!muted; Audio.setMuted(muted); muteBtn.textContent=muted?'🔇':'🔊'; });
+
+})();
+</script>
+</body>
+</html>
